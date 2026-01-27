@@ -1,0 +1,41 @@
+# === Git ===
+.git
+.gitignore
+
+# === Build outputs ===
+target
+build
+out
+.gradle
+
+# === IDEs ===
+.idea
+.vscode
+*.iml
+.project
+.classpath
+.settings
+
+# === OS junk ===
+.DS_Store
+Thumbs.db
+
+# === Logs & temp ===
+*.log
+tmp
+temp
+
+# === Test artifacts ===
+hs_err_pid*
+
+# === Env / secrets ===
+.env
+.env.*
+*.keystore
+*.jks
+*.pem
+*.crt
+
+# === Docker files not needed in image ===
+docker-compose.yml
+docker-compose.override.yml

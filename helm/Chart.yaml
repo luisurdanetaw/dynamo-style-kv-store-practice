@@ -1,0 +1,6 @@
+apiVersion: v2
+name: kv-node
+description: Minimal Java KV node (discovery via headless svc + StatefulSet)
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
