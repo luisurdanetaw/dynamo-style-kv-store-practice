@@ -25,9 +25,11 @@ public final class Main {
         int replicas = intEnv("REPLICAS", 1);
         String nodeId = podName;
 
-        List<String> peers = computePeers(podName, replicas, headless, namespace, port);
+        List<Node> peers = computePeers(podName, replicas, headless, namespace, port);
 
-        // RocksDB path: in k8s you should mount a volume. For local dev, default to ./data/<nodeId>
+        ConsistentHashRing ring = new ConsistentHashRing(peers, ConsistentHashRing.DEFAULT_VNODES);
+        int RF = 3;
+
         String dbPath = env("DB_PATH", "./data/" + nodeId);
 
         Storage store = new Storage(dbPath);
@@ -49,7 +51,20 @@ public final class Main {
                 "peers", peers
         )));
 
-        // Client API: local only (for now). Next milestone turns this into coordinator logic.
+        server.createContext("/debug/replicas", ex -> {
+            String key = ex.getRequestURI().getQuery(); // expecting ?key=foo
+            if (key == null || !key.startsWith("key=")) {
+                json(ex, 400, Map.of("error", "use ?key=..."));
+                return;
+            }
+            String k = URLDecoder.decode(key.substring(4), StandardCharsets.UTF_8);
+            List<Node> reps = ring.replicasForKey(k, 3);
+            json(ex, 200, Map.of(
+                    "key", k,
+                    "replicas", reps.stream().map(n -> Map.of("id", n.id(), "url", n.baseUrl())).toList()
+            ));
+        });
+
         server.createContext("/kv", ex -> {
             try {
                 String key = pathParamAfterPrefix(ex, "/kv/");
@@ -164,12 +179,14 @@ public final class Main {
         return URLDecoder.decode(raw, StandardCharsets.UTF_8);
     }
 
-    private static List<String> computePeers(String podName, int replicas, String headless, String namespace, int port) {
+    private static List<Node> computePeers(String podName, int replicas, String headless, String namespace, int port) {
         String baseName = podName.contains("-") ? podName.substring(0, podName.lastIndexOf('-')) : podName;
-        List<String> peers = new ArrayList<>(replicas);
+        List<Node> peers = new ArrayList<>(replicas);
         for (int i = 0; i < replicas; i++) {
-            String host = baseName + "-" + i + "." + headless + "." + namespace + ".svc.cluster.local";
-            peers.add("http://" + host + ":" + port);
+            String id = baseName + "-" + i;
+            String host = id + "." + headless + "." + namespace + ".svc.cluster.local";
+            String url = "http://" + host + ":" + port;
+            peers.add(new Node(id, url));
         }
         return peers;
     }
