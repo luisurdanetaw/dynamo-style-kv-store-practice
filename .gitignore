@@ -75,3 +75,6 @@ charts/*.tgz
 
 # === Docker local junk ===
 docker-compose.override.yml
+
+# === Other ===
+/data/

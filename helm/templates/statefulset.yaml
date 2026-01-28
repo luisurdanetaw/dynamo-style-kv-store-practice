@@ -11,6 +11,15 @@ spec:
     matchLabels:
       app.kubernetes.io/name: {{ include "kv.name" . }}
       app.kubernetes.io/instance: {{ .Release.Name }}
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: "10Mi" #
   template:
     metadata:
       labels:
@@ -21,10 +30,15 @@ spec:
         - name: kv
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          volumeMounts:
+            - name: data
+              mountPath: {{ .Values.persistence.volume.path }}
           ports:
             - name: http
               containerPort: {{ .Values.service.port }}
           env:
+            - name: DB_PATH
+              value: {{ .Values.persistence.db.path }}
             - name: PORT
               value: {{ .Values.env.port | quote }}
             - name: REPLICAS

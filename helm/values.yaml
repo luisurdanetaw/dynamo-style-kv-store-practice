@@ -12,6 +12,15 @@ env:
   port: 8080
   headlessServiceName: kv-headless
 
+persistence:
+  enabled: true
+  size: 1Gi
+  storageClassName: ""
+  db:
+    path: /var/lib/kv/rocksdb
+  volume:
+    path: /var/lib/kv
+
 resources: {}
 # resources:
 #   requests:
