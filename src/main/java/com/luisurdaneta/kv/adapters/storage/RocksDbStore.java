@@ -1,5 +1,7 @@
-package com.luisurdaneta.kv;
+package com.luisurdaneta.kv.adapters.storage;
 
+import com.luisurdaneta.kv.core.model.VersionedValue;
+import com.luisurdaneta.kv.core.ports.KvStore;
 import org.rocksdb.Options;
 import org.rocksdb.RocksDB;
 import org.rocksdb.RocksDBException;
@@ -14,13 +16,13 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-public final class Storage implements AutoCloseable {
+public final class RocksDbStore implements KvStore {
     static { RocksDB.loadLibrary(); }
 
     private final Options options;
     private final RocksDB db;
 
-    public Storage(String path) throws RocksDBException {
+    public RocksDbStore(String path) throws RocksDBException {
         Path p = Paths.get(path);
 
         try {
@@ -48,18 +50,12 @@ public final class Storage implements AutoCloseable {
         return VersionedValue.fromBytes(v);
     }
 
-    public void putIfNewer(String key, VersionedValue candidate) throws RocksDBException {
-        VersionedValue existing = get(key);
-        if (candidate.isNewerThan(existing)) {
-            db.put(key.getBytes(StandardCharsets.UTF_8), candidate.toBytes());
-        }
-    }
-
-    public boolean putIfNewerApplied(String key, VersionedValue candidate) throws RocksDBException {
+    public boolean putIfNewer(String key, VersionedValue candidate) throws RocksDBException {
         byte[] k = key.getBytes(StandardCharsets.UTF_8);
 
-        // Single GET + conditional PUT
-        VersionedValue existing = VersionedValue.fromBytes(db.get(k));
+        byte[] raw = db.get(k);
+        VersionedValue existing = (raw == null) ? null : VersionedValue.fromBytes(raw);
+
         if (candidate.isNewerThan(existing)) {
             db.put(k, candidate.toBytes());
             return true;

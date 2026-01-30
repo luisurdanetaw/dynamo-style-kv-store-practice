@@ -1,4 +1,4 @@
-package com.luisurdaneta.kv;
+package com.luisurdaneta.kv.adapters.peer;
 
 import java.net.URI;
 import java.net.http.HttpClient;

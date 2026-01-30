@@ -1,4 +1,4 @@
-package com.luisurdaneta.kv;
+package com.luisurdaneta.kv.core.model;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;

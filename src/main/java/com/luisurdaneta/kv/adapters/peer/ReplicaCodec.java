@@ -1,4 +1,6 @@
-package com.luisurdaneta.kv;
+package com.luisurdaneta.kv.adapters.peer;
+
+import com.luisurdaneta.kv.core.model.VersionedValue;
 
 import java.util.Base64;
 
