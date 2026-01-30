@@ -1,4 +1,4 @@
-package com.luisurdaneta.kv;
+package com.luisurdaneta.kv.adapters.peer;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;

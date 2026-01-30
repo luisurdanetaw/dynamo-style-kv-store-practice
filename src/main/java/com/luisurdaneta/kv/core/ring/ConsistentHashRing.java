@@ -1,4 +1,6 @@
-package com.luisurdaneta.kv;
+package com.luisurdaneta.kv.core.ring;
+
+import com.luisurdaneta.kv.http.Node;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
