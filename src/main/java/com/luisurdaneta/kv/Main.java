@@ -1,15 +1,20 @@
 package com.luisurdaneta.kv;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.luisurdaneta.kv.adapters.peer.PeerClientImpl;
 import com.luisurdaneta.kv.adapters.storage.RocksDbStore;
 import com.luisurdaneta.kv.core.ports.Clock;
 import com.luisurdaneta.kv.core.ports.KvStore;
+import com.luisurdaneta.kv.core.ports.PeerClient;
 import com.luisurdaneta.kv.core.ring.ConsistentHashRing;
-import com.luisurdaneta.kv.core.service.KvService;
+import com.luisurdaneta.kv.core.service.ReadCoordinatorService;
 import com.luisurdaneta.kv.core.service.ReplicaKvService;
+import com.luisurdaneta.kv.core.service.WriteCoordinatorService;
 import com.luisurdaneta.kv.http.*;
+import com.luisurdaneta.kv.util.HttpJson;
 import com.sun.net.httpserver.HttpServer;
 
+import java.time.Duration;
 import java.util.*;
 
 public final class Main {
@@ -32,10 +37,34 @@ public final class Main {
 
         Clock clock = Clock.system();
 
-        KvService kvService = new KvService(store, clock);
         ReplicaKvService replicaService = new ReplicaKvService(store);
 
-        NodeContext ctx = new NodeContext(config, peers, ring, kvService, replicaService);
+        PeerClient peerClient = new PeerClientImpl(HttpJson.MAPPER);
+
+        WriteCoordinatorService writeCoordinator = new WriteCoordinatorService(
+                config.nodeId(),
+                ring,
+                replicaService,
+                peerClient,
+                clock,
+                3,  // REPLICATION FACTOR
+                2,  // W
+                Duration.ofMillis(300),
+                Duration.ofMillis(800)
+        );
+
+        ReadCoordinatorService readCoordinator = new ReadCoordinatorService(
+                config.nodeId(),
+                ring,
+                replicaService,
+                peerClient,
+                3, // REPLICATION FACTOR
+                2, // R
+                Duration.ofMillis(300),
+                Duration.ofMillis(800)
+        );
+
+        NodeContext ctx = new NodeContext(config, peers, ring, replicaService, writeCoordinator, readCoordinator, peerClient);
 
         HttpServer server = HttpServerBootstrap.start(ctx);
 

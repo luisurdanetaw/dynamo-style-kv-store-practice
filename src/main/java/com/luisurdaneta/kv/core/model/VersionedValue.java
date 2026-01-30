@@ -18,14 +18,13 @@ public final class VersionedValue {
         this.payload = payload == null ? new byte[0] : payload;
     }
 
-    // LWW: higher (ts, nodeId) wins. nodeId tie-break must be stable.
     public boolean isNewerThan(VersionedValue other) {
         if (other == null) return true;
         if (this.ts != other.ts) return this.ts > other.ts;
         return this.nodeId.compareTo(other.nodeId) > 0;
     }
 
-    // Simple binary encoding (fast, stable). Format:
+    // simple binary encoding (fast, stable) - format:
     // [ts:8][tomb:1][nodeLen:4][nodeBytes][payloadLen:4][payloadBytes]
     public byte[] toBytes() {
         byte[] nodeBytes = nodeId.getBytes(StandardCharsets.UTF_8);

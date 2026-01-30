@@ -9,7 +9,6 @@ import java.io.OutputStream;
 public final class HttpJson {
     private HttpJson() {}
 
-    // If you already have a shared ObjectMapper config, swap this out.
     public static final ObjectMapper MAPPER = new ObjectMapper();
 
     public static void json(HttpExchange ex, int status, Object obj) throws IOException {
