@@ -4,7 +4,7 @@ package com.luisurdaneta.kv.core.service;
 import com.luisurdaneta.kv.core.model.VersionedValue;
 import com.luisurdaneta.kv.core.ports.Clock;
 import com.luisurdaneta.kv.core.ports.PeerClient;
-import com.luisurdaneta.kv.core.ring.ConsistentHashRing;
+import com.luisurdaneta.kv.core.ring.RingManager;
 import com.luisurdaneta.kv.http.Node;
 
 import java.time.Duration;
@@ -14,7 +14,7 @@ import java.util.concurrent.*;
 
 public final class WriteCoordinatorService {
     private final String localNodeId;
-    private final ConsistentHashRing ring;
+    private final RingManager ringManager;
     private final ReplicaKvService replicaLocal;
     private final PeerClient peers;
     private final Clock clock;
@@ -26,7 +26,7 @@ public final class WriteCoordinatorService {
 
     public WriteCoordinatorService(
             String localNodeId,
-            ConsistentHashRing ring,
+            RingManager ringManager,
             ReplicaKvService replicaLocal,
             PeerClient peers,
             Clock clock,
@@ -36,7 +36,7 @@ public final class WriteCoordinatorService {
             Duration overallTimeout
     ) {
         this.localNodeId = localNodeId;
-        this.ring = ring;
+        this.ringManager = ringManager;
         this.replicaLocal = replicaLocal;
         this.peers = peers;
         this.clock = clock;
@@ -57,7 +57,7 @@ public final class WriteCoordinatorService {
     }
 
     private WriteResult writeQuorum(String key, VersionedValue vv) throws Exception {
-        List<Node> replicas = ring.replicasForKey(key, rf);
+        List<Node> replicas = ringManager.currentRing().replicasForKey(key, rf);
 
         try (ExecutorService exec = Executors.newVirtualThreadPerTaskExecutor()) {
             CompletionService<Ack> cs = new ExecutorCompletionService<>(exec);

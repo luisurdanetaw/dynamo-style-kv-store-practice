@@ -2,7 +2,7 @@ package com.luisurdaneta.kv.core.service;
 
 import com.luisurdaneta.kv.core.model.VersionedValue;
 import com.luisurdaneta.kv.core.ports.PeerClient;
-import com.luisurdaneta.kv.core.ring.ConsistentHashRing;
+import com.luisurdaneta.kv.core.ring.RingManager;
 import com.luisurdaneta.kv.http.Node;
 
 import java.time.Duration;
@@ -12,7 +12,7 @@ import java.util.concurrent.*;
 
 public final class ReadCoordinatorService {
     private final String localNodeId;
-    private final ConsistentHashRing ring;
+    private final RingManager ringManager;
     private final ReplicaKvService replicaLocal;
     private final PeerClient peers;
 
@@ -23,7 +23,7 @@ public final class ReadCoordinatorService {
 
     public ReadCoordinatorService(
             String localNodeId,
-            ConsistentHashRing ring,
+            RingManager ringManager,
             ReplicaKvService replicaLocal,
             PeerClient peers,
             int rf,
@@ -32,7 +32,7 @@ public final class ReadCoordinatorService {
             Duration overallTimeout
     ) {
         this.localNodeId = localNodeId;
-        this.ring = ring;
+        this.ringManager = ringManager;
         this.replicaLocal = replicaLocal;
         this.peers = peers;
         this.rf = rf;
@@ -42,7 +42,7 @@ public final class ReadCoordinatorService {
     }
 
     public ReadResult get(String key) throws Exception {
-        List<Node> replicas = ring.replicasForKey(key, rf);
+        List<Node> replicas = ringManager.currentRing().replicasForKey(key, rf);
 
         try (ExecutorService exec = Executors.newVirtualThreadPerTaskExecutor()) {
             CompletionService<ReadAck> cs = new ExecutorCompletionService<>(exec);

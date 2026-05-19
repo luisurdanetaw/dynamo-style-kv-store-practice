@@ -7,10 +7,11 @@ public final class Routes {
     private Routes() {}
 
     public static void registerAll(HttpServer server, NodeContext ctx) {
-        server.createContext("/healthz", new HealthHandler());
-        server.createContext("/whoami", new WhoamiHandler(ctx));
-        server.createContext("/debug/replicas", new DebugReplicasHandler(ctx));
-        server.createContext("/kv", new KvHandler(ctx));
-        server.createContext("/internal/replica/kv", new ReplicaKvHandler(ctx));
+        server.createContext("/healthz",                    new HealthHandler());
+        server.createContext("/whoami",                     new WhoamiHandler(ctx));
+        server.createContext("/debug/replicas",             new DebugReplicasHandler(ctx));
+        server.createContext("/kv",                         new KvHandler(ctx));
+        server.createContext("/internal/replica/kv",        new ReplicaKvHandler(ctx));
+        server.createContext("/internal/transfer/range",    new TransferHandler(ctx));
     }
 }

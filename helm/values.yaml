@@ -11,6 +11,9 @@ service:
 env:
   port: 8080
   headlessServiceName: kv-headless
+  # Label selector used by PodWatcher to filter pods of this StatefulSet.
+  # Overridden per-instance in statefulset.yaml via downward-API env injection.
+  labelSelector: "app.kubernetes.io/name=kv-node"
 
 persistence:
   enabled: true
